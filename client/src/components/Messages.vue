@@ -1,7 +1,8 @@
 <template>
   <div>
-    <li v-for="conversation in messages" :key="conversation.messageId">
-      <message :message="conversation" @disable-editing="disableEditing"/>
+    <li v-for="conversation in conversations" :key="conversation.message_id">
+      {{conversation}}
+      <message :conversation="conversation" @disable-editing="disableEditing"/>
     </li>
     <v-btn @click.prevent="sendMessage">Send</v-btn>
   </div>
@@ -20,24 +21,23 @@ export default {
   async mounted() {
     await axios.get(util.BASE_URL + "/conversations").then(resp => {
       console.log(resp);
-      const response = resp.data.conversations;
-      let messages = [];
+      let conversations = [];
 
-      for (let conversation of response.data.conversations) {
+      for (let conversation of resp.data.conversations) {
         const message = {
           ...conversation,
           editing: false
         }
-        messages.push(message);
+        conversations.push(message);
       }
-      this.messages = messages;
+      this.conversations = conversations;
     }).catch(err => {
       this.error = err;
     })
   },
   data() {
     return {
-      messages: [],
+      conversations: [],
       error: null,
     }
   },
