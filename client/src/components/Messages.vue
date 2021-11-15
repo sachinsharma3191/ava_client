@@ -1,9 +1,23 @@
 <template>
-  <div>
-    <li v-for="conversation in conversations" :key="conversation.message_id">
-      {{conversation}}
-      <message :conversation="conversation" @disable-editing="disableEditing"/>
-    </li>
+  <div class="messages">
+    <v-simple-table>
+      <template v-slot:default>
+        <tbody>
+        <tr v-for="(conversation,index) in conversations" :key="index">
+          <td @click.prevent="enableEditing(conversation)" v-show="!conversation.editing">
+            {{conversation.data.text }}
+          </td>
+          <td v-show="conversation.editing">
+            <v-text-field v-model="conversation.data.text"
+                          v-show="conversation.editing"
+                          @keydown.enter="disableEditing(conversation)"
+                          @keydown.esc="disableEditing(conversation)"
+                          @keydown.tab="disableEditing(conversation)"></v-text-field>
+          </td>
+        </tr>
+        </tbody>
+      </template>
+    </v-simple-table>
     <v-btn @click.prevent="sendMessage">Send</v-btn>
   </div>
 </template>
@@ -11,24 +25,19 @@
 <script>
 import axios from 'axios';
 import * as util from '../util/Util';
-import Message from "./Message";
 
 export default {
   name: "Messages",
-  components: {
-    Message
-  },
   async mounted() {
     await axios.get(util.BASE_URL + "/conversations").then(resp => {
-      console.log(resp);
       let conversations = [];
 
-      for (let conversation of resp.data.conversations) {
-        const message = {
-          ...conversation,
+      for (let conver of resp.data.conversations) {
+        const conversation = {
+          ...conver,
           editing: false
         }
-        conversations.push(message);
+        conversations.push(conversation);
       }
       this.conversations = conversations;
     }).catch(err => {
@@ -43,7 +52,10 @@ export default {
   },
   methods: {
     disableEditing(conversation) {
-      console.log(conversation);
+      conversation.editing = false;
+    },
+    enableEditing(conversation) {
+      conversation.editing = true;
     },
     sendMessage() {
       console.log("Message sent");
@@ -53,5 +65,7 @@ export default {
 </script>
 
 <style scoped>
-
+.messages {
+  margin-top: 20px  ;
+}
 </style>
